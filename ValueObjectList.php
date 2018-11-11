@@ -1,6 +1,6 @@
 <?php
 
-namespace equicolor\valueObjects;
+namespace ivankff\valueObjects;
 
 use yii\base\ArrayAccessTrait;
 
