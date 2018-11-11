@@ -1,6 +1,6 @@
 {
-    "name": "equicolor/yii2-value-objects",
-    "version": "1.0.0",
+    "name": "ivankff/yii2-value-objects",
+    "version": "2.0.0",
     "keywords": [
         "yii2",
         "json",
@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "yiisoft/yii2": "~2.0.0"
+        "yiisoft/yii2": "~2.0.14"
     },
     "autoload": {
         "psr-4": {
