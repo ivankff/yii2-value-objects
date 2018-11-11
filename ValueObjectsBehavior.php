@@ -74,6 +74,8 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
             } catch (\Exception $e) {
                 throw new ValueObjectMappingException('Error on creating object', 0, $e);
             }
+        } elseif (is_array($json)) {
+            $object->setAttributes($json);
         }
     }
 
@@ -92,7 +94,7 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
     }
 
     protected function createJson($attribute) {
-        $json = Json::encode($this->objectsMap[$attribute]);
+        $json = $this->objectsMap[$attribute];
         $this->jsonMap[$attribute] = $json;
 
         return $json;
