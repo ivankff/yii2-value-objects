@@ -10,8 +10,11 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
     public static $classMap = [];
 
     private $jsonMap = [];
+    /**
+     * @var IValueObject[]
+     */
     private $objectsMap = [];
-    
+
     private $_initialized = false;
 
     public function events()
@@ -50,7 +53,7 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
             $this->_initialized = true;
         }
     }
-    
+
     public function afterFind() {
         $this->fillObjects();
         $this->putObjects();
@@ -64,9 +67,15 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
         }
     }
 
-    // BACKLOG split decoding and mapping
+    /**
+     * BACKLOG split decoding and mapping
+     * @param IValueObject $object
+     * @param $attribute
+     */
     protected function fillObject($object, $attribute) {
-        $json = $this->owner->$attribute;
+        $arAttribute = $object->getArAttribute() ?: $attribute;
+        $json = $this->owner->$arAttribute;
+
         if (is_string($json) && strlen($json)) {
             try {
                 $array = json_decode($json, true);
@@ -86,11 +95,13 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
     }
 
     protected function createObject($attribute, $class) {
-        if ($class instanceOf ValueObjectList) {
-            return $class;
-        } else {
-            return new $class;
-        }
+        if ($class instanceof IValueObject)
+            $object = clone $class;
+        else
+            $object = new $class;
+
+        $object->setOwner($this->owner);
+        return $object;
     }
 
     protected function createJson($attribute) {
@@ -119,22 +130,48 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
     }
 
     public function putJson() {
-        foreach (array_keys($this->getValueObjectAttributes()) as $attribute) {
-            $this->owner->$attribute = $this->getJson($attribute);
+        foreach ($this->getValueObjectAttributes() as $attribute => $object) {
+            $arAttribute = $object->getArAttribute() ?: $attribute;
+            $this->owner->$arAttribute = $this->getJson($attribute);
         }
     }
 
     public function putObjects() {
-        foreach (array_keys($this->getValueObjectAttributes()) as $attribute) {
-            $this->owner->$attribute = $this->getObject($attribute);
+        foreach ($this->getValueObjectAttributes() as $attribute => $object) {
+            $arAttribute = $object->getArAttribute() ?: $attribute;
+            $this->owner->$arAttribute = $this->getObject($attribute);
         }
     }
-   
+
     protected function setOwnerOldAttributes() {
         if ($this->owner instanceOf \yii\db\ActiveRecordInterface && !$this->owner->isNewRecord) {
             foreach ($this->objectsMap as $attribute => $object) {
+                $attribute = $object->getArAttribute() ?: $attribute;
                 $this->owner->setOldAttribute($attribute, $object);
             }
         }
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function __get($name)
+    {
+        if (array_key_exists($name, $this->objectsMap))
+            return $this->objectsMap[$name];
+
+        return parent::__get($name);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canGetProperty($name, $checkVars = true)
+    {
+        if (array_key_exists($name, $this->objectsMap))
+            return true;
+
+        return parent::canGetProperty($name, $checkVars);
+    }
+
 }

@@ -4,14 +4,32 @@ namespace ivankff\valueObjects;
 
 use yii\base\Component;
 use ReflectionClass;
+use yii\db\ActiveRecord;
 
+/**
+ * @property-read ActiveRecord $owner
+ */
 class ValueObject extends Component implements IValueObject {
     const EVENT_INIT = 'init';
 
-    // list
+    /**
+     * @var ActiveRecord
+     */
+    private $_owner;
+    /**
+     * @var string|null
+     * `null` if this value object name matches with AR attribute name
+     * `string` if not
+     */
+    private $_arAttribute;
+    /**
+     * @var array list
+     */
     private $_attributes;
-
-    // k => v
+    /**
+     * @var array
+     * k => v
+     */
     private $_oldAttributes;
 
     public function init()
@@ -20,17 +38,9 @@ class ValueObject extends Component implements IValueObject {
         $this->trigger(self::EVENT_INIT);
     }
 
-    public function __set($prop, $val) {
-        if (!property_exists($this, $prop)) {
-            throw new \yii\base\UnknownPropertyException("Value object has not \"$prop\" property");
-        }
-
-        parent::__set($prop, $val);
-    }
-
     public function behaviors() {
         return [
-            ValueObjectsBehavior::className()
+            ValueObjectsBehavior::class
         ];
     }
 
@@ -39,8 +49,6 @@ class ValueObject extends Component implements IValueObject {
         foreach ($this->attributes() as $attr) {
             $value = $this->$attr;
             if ($value instanceOf ValueObject) {
-                $data[$attr] = $value->toArray();
-            } else if ($value instanceOf ValueObjectList) {
                 $data[$attr] = $value->toArray();
             } else {
                 $data[$attr] = $value;
@@ -79,7 +87,7 @@ class ValueObject extends Component implements IValueObject {
             }
         }
     }
-    
+
     public function getAttributes($attrs = null) {
         $data = [];
 
@@ -141,7 +149,7 @@ class ValueObject extends Component implements IValueObject {
         }
         return isset($attributes[$name]) || isset($this->_oldAttributes[$name]);
     }
-    
+
     public function getOldAttribute($attr) {
         return $this->_oldAttributes[$attr];
     }
@@ -149,4 +157,17 @@ class ValueObject extends Component implements IValueObject {
     public function getAttribute($attr) {
         return $this->$attr;
     }
+
+    /** @return ActiveRecord */
+    public function getOwner() { return $this->_owner; }
+
+    /** @param ActiveRecord $owner */
+    public function setOwner($owner) { $this->_owner = $owner; }
+
+    /** @return string|null */
+    public function getArAttribute() { return $this->_arAttribute; }
+
+    /** @param string|null $arAttribute */
+    public function setArAttribute($arAttribute) { $this->_arAttribute = $arAttribute; }
+
 }

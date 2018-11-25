@@ -1,17 +1,16 @@
 {
     "name": "ivankff/yii2-value-objects",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "keywords": [
         "yii2",
-        "json",
-        "ddd"
+        "json"
     ],
     "type": "yii2-extension",
     "description": "Easy to store nested objects and typed collections in AR",
     "license": "BSD-3-Clause",
     "support": {
-        "issues": "https://github.com/equicolor/yii2-value-objects/issues",
-        "source": "https://github.com/equicolor/yii2-value-objects"
+        "issues": "https://github.com/ivankff/yii2-value-objects/issues",
+        "source": "https://github.com/ivankff/yii2-value-objects"
     },
     "authors": [
         {
@@ -20,6 +19,7 @@
         }
     ],
     "require": {
+        "php": ">=7.0",
         "yiisoft/yii2": "~2.0.14"
     },
     "autoload": {
