@@ -31,4 +31,9 @@ interface IValueObject {
      */
     public function setArAttribute($arAttribute);
 
+    /**
+     * @return array
+     */
+    public function getAttributesToSave();
+
 }

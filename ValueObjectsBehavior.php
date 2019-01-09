@@ -105,7 +105,7 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
     }
 
     protected function createJson($attribute) {
-        $json = $this->objectsMap[$attribute];
+        $json = $this->objectsMap[$attribute]->getAttributesToSave();
         $this->jsonMap[$attribute] = $json;
 
         return $json;

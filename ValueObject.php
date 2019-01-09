@@ -170,4 +170,7 @@ class ValueObject extends Component implements IValueObject {
     /** @param string|null $arAttribute */
     public function setArAttribute($arAttribute) { $this->_arAttribute = $arAttribute; }
 
+    /** @return array */
+    public function getAttributesToSave() { return $this->getAttributes(); }
+
 }
