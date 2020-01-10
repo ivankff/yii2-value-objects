@@ -5,18 +5,27 @@ namespace ivankff\valueObjects;
 use \yii\db\ActiveRecord;
 use \yii\helpers\Json;
 
-class ValueObjectsBehavior extends \yii\base\Behavior {
+class ValueObjectsBehavior extends \yii\base\Behavior
+{
 
     public static $classMap = [];
 
+    /**
+     * @var array
+     */
     private $jsonMap = [];
     /**
      * @var IValueObject[]
      */
     private $objectsMap = [];
-
+    /**
+     * @var bool
+     */
     private $_initialized = false;
 
+    /**
+     * {@inheritDoc}
+     */
     public function events()
     {
         return [
@@ -29,7 +38,11 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
         ];
     }
 
-    protected function getValueObjectAttributes() {
+    /**
+     * @return mixed
+     */
+    protected function getValueObjectAttributes()
+    {
         $class = get_class($this->owner);
         if (!isset(self::$classMap[$class])) {
             if (!method_exists($class, 'valueObjects')) {
@@ -44,7 +57,10 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
         return self::$classMap[$class];
     }
 
-    public function initObjects() {
+    /**
+     */
+    public function initObjects()
+    {
         if (!$this->_initialized) {
             $this->createObjects();
             // BACKLOG В active record нет смысла инстанциировать value objects сразу, но в Model есть
@@ -54,13 +70,19 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
         }
     }
 
-    public function afterFind() {
+    /**
+     */
+    public function afterFind()
+    {
         $this->fillObjects();
         $this->putObjects();
         $this->setOwnerOldAttributes();
     }
 
-    protected function fillObjects() {
+    /**
+     */
+    protected function fillObjects()
+    {
         foreach ($this->objectsMap as $attribute => $object) {
             $this->fillObject($object, $attribute);
             $object->setOldAttributes($object->attributes);
@@ -72,7 +94,8 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
      * @param IValueObject $object
      * @param $attribute
      */
-    protected function fillObject($object, $attribute) {
+    protected function fillObject($object, $attribute)
+    {
         $arAttribute = $object->getArAttribute() ?: $attribute;
         $json = $this->owner->$arAttribute;
 
@@ -81,20 +104,29 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
                 $array = json_decode($json, true);
                 $object->setAttributes($array);
             } catch (\Exception $e) {
-                throw new ValueObjectMappingException('Error on creating object', 0, $e);
+                throw new ValueObjectsMappingException('Error on creating object', 0, $e);
             }
         } elseif (is_array($json)) {
             $object->setAttributes($json);
         }
     }
 
-    protected function createObjects() {
+    /**
+     */
+    protected function createObjects()
+    {
         foreach ($this->getValueObjectAttributes() as $attribute => $class) {
             $this->objectsMap[$attribute] = $this->createObject($attribute, $class);
         }
     }
 
-    protected function createObject($attribute, $class) {
+    /**
+     * @param string $attribute
+     * @param string $class
+     * @return IValueObject
+     */
+    protected function createObject($attribute, $class)
+    {
         if ($class instanceof IValueObject)
             $object = clone $class;
         else
@@ -104,22 +136,35 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
         return $object;
     }
 
-    protected function createJson($attribute) {
+    /**
+     * @param string $attribute
+     * @return array
+     */
+    protected function createJson($attribute)
+    {
         $json = $this->objectsMap[$attribute]->getAttributesToSave();
         $this->jsonMap[$attribute] = $json;
 
         return $json;
     }
 
-    protected function getJson($attribute) {
-        if (!isset($this->jsonMap[$attribute])) {
-            $this->jsonMap[$attribute] = $this->createJson($attribute);
-        }
+    /**
+     * @param string $attribute
+     * @return array
+     */
+    protected function getJson($attribute)
+    {
+        $this->jsonMap[$attribute] = $this->createJson($attribute);
 
         return $this->jsonMap[$attribute];
     }
 
-    protected function getObject($attribute) {
+    /**
+     * @param string $attribute
+     * @return IValueObject
+     */
+    protected function getObject($attribute)
+    {
         if (!isset($this->objectsMap[$attribute])) {
             // BACKLOG i dont know how to get class there. Is it neccesarry at all?
             throw new \Error('not implemented');
@@ -129,22 +174,31 @@ class ValueObjectsBehavior extends \yii\base\Behavior {
         return $this->objectsMap[$attribute];
     }
 
-    public function putJson() {
+    /**
+     */
+    public function putJson()
+    {
         foreach ($this->getValueObjectAttributes() as $attribute => $object) {
             $arAttribute = $object->getArAttribute() ?: $attribute;
             $this->owner->$arAttribute = $this->getJson($attribute);
         }
     }
 
-    public function putObjects() {
+    /**
+     */
+    public function putObjects()
+    {
         foreach ($this->getValueObjectAttributes() as $attribute => $object) {
             $arAttribute = $object->getArAttribute() ?: $attribute;
             $this->owner->$arAttribute = $this->getObject($attribute);
         }
     }
 
-    protected function setOwnerOldAttributes() {
-        if ($this->owner instanceOf \yii\db\ActiveRecordInterface && !$this->owner->isNewRecord) {
+    /**
+     */
+    protected function setOwnerOldAttributes()
+    {
+        if ($this->owner instanceOf \yii\db\ActiveRecordInterface && !$this->owner->getIsNewRecord()) {
             foreach ($this->objectsMap as $attribute => $object) {
                 $attribute = $object->getArAttribute() ?: $attribute;
                 $this->owner->setOldAttribute($attribute, $object);

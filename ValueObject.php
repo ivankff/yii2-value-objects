@@ -9,7 +9,9 @@ use yii\db\ActiveRecord;
 /**
  * @property-read ActiveRecord $owner
  */
-class ValueObject extends Component implements IValueObject {
+class ValueObject extends Component implements IValueObject
+{
+
     const EVENT_INIT = 'init';
 
     /**
@@ -32,19 +34,32 @@ class ValueObject extends Component implements IValueObject {
      */
     private $_oldAttributes;
 
+    /**
+     * {@inheritDoc}
+     */
     public function init()
     {
         parent::init();
         $this->trigger(self::EVENT_INIT);
     }
 
-    public function behaviors() {
+    /**
+     * {@inheritDoc}
+     */
+    public function behaviors()
+    {
         return [
-            ValueObjectsBehavior::class
+            'valueObjects' => [
+                'class' => 'ivankff\valueObjects\ValueObjectsBehavior',
+            ],
         ];
     }
 
-    public function toArray() {
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
         $data = [];
         foreach ($this->attributes() as $attr) {
             $value = $this->$attr;
@@ -58,6 +73,9 @@ class ValueObject extends Component implements IValueObject {
         return $data;
     }
 
+    /**
+     * @return array
+     */
     public function attributes()
     {
         if (!$this->_attributes) {
@@ -72,7 +90,11 @@ class ValueObject extends Component implements IValueObject {
         return $this->_attributes;
     }
 
-    public function setAttributes($values) {
+    /**
+     * @param array $values
+     */
+    public function setAttributes($values)
+    {
         if (is_array($values)) {
             $attributes = array_flip($this->attributes());
             foreach ($values as $name => $value) {
@@ -88,7 +110,12 @@ class ValueObject extends Component implements IValueObject {
         }
     }
 
-    public function getAttributes($attrs = null) {
+    /**
+     * @param array|null $attrs
+     * @return array
+     */
+    public function getAttributes($attrs = null)
+    {
         $data = [];
 
         if ($attrs === null) {
@@ -107,21 +134,34 @@ class ValueObject extends Component implements IValueObject {
         return $data;
     }
 
-    public function setOldAttributes($attrs) {
+    /**
+     * @param array $attrs
+     */
+    public function setOldAttributes($attrs)
+    {
         $this->_oldAttributes = $attrs;
     }
 
-    public function getIsChanged() {
+    /**
+     * @return bool
+     */
+    public function getIsChanged()
+    {
         return !empty($this->getDirtyAttributes());
     }
 
+    /**
+     * @param array|null $names
+     * @return array
+     */
     public function getDirtyAttributes($names = null)
     {
-        if ($names === null) {
+        if ($names === null)
             $names = $this->attributes();
-        }
+
         $names = array_flip($names);
         $attributes = [];
+
         if ($this->_oldAttributes === null) {
             foreach ($this->attributes as $name => $value) {
                 if (isset($names[$name])) {
@@ -135,9 +175,15 @@ class ValueObject extends Component implements IValueObject {
                 }
             }
         }
+
         return $attributes;
     }
 
+    /**
+     * @param string $name
+     * @param bool $identical
+     * @return bool
+     */
     public function isAttributeChanged($name, $identical = true)
     {
         $attributes = $this->attributes;
@@ -150,11 +196,21 @@ class ValueObject extends Component implements IValueObject {
         return isset($attributes[$name]) || isset($this->_oldAttributes[$name]);
     }
 
-    public function getOldAttribute($attr) {
+    /**
+     * @param string $attr
+     * @return mixed
+     */
+    public function getOldAttribute($attr)
+    {
         return $this->_oldAttributes[$attr];
     }
 
-    public function getAttribute($attr) {
+    /**
+     * @param string $attr
+     * @return mixed
+     */
+    public function getAttribute($attr)
+    {
         return $this->$attr;
     }
 
