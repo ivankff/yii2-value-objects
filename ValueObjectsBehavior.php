@@ -201,7 +201,7 @@ class ValueObjectsBehavior extends \yii\base\Behavior
         if ($this->owner instanceOf \yii\db\ActiveRecordInterface && !$this->owner->getIsNewRecord()) {
             foreach ($this->objectsMap as $attribute => $object) {
                 $attribute = $object->getArAttribute() ?: $attribute;
-                $this->owner->setOldAttribute($attribute, $object);
+                $this->owner->setOldAttribute($attribute, clone $object);
             }
         }
     }
